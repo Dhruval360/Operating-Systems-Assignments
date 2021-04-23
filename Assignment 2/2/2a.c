@@ -12,7 +12,7 @@ Show how race condition occurs between producer and consumer without mutual excl
 #include<stdlib.h>
 #include<unistd.h>
 #define BUFFER_SIZE 100
-#define PAIRS 1 // To change the number of producers and consumers
+#define PAIRS 2 // Pairs of producers and consumers. More producer consumer pairs makes it easier to spot the race condition
 
 int *buffer;
 int item = 0, front = 0, rear = 0, counter = 0; // counter is the number of items in the buffer
@@ -21,9 +21,10 @@ void produce(void *pid){
     while(1){
         while(counter == BUFFER_SIZE); // Buffer full, so stop producing
         usleep(100000); // Simulating some time consuming calculations
-        printf("Producer %d: Produced item %d + | Items in buffer = %d\n", *(int*)pid, ++item, ++counter);
+        counter++;
         buffer[rear] = item;
         rear = (rear + 1) % BUFFER_SIZE;
+        printf("Producer %d: Produced item %d + | Items in buffer = %d\n", *(int*)pid, ++item, counter);
     }
 }
 
@@ -31,7 +32,8 @@ void consume(void *pid){
     while(1){
         while(counter == 0); // Buffer empty, so stop consuming
         usleep(100000); // Simulating some time consuming calculations
-        printf("Consumer %d: Consumed item %d - | Items in buffer = %d\n", *(int*)pid, buffer[front], --counter);
+        counter--;
+        printf("Consumer %d: Consumed item %d - | Items in buffer = %d\n", *(int*)pid, buffer[front], counter);
         front = (front + 1) % BUFFER_SIZE;
     }
 }

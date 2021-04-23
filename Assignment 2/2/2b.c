@@ -17,7 +17,7 @@ buffer has at least one item. You can use bounded buffer.
 #define BUFFER_SIZE 100
 #define PAIRS 1 // To change the pairs of producers and consumers
 
-sem_t semaphore; 
+sem_t semaphore; // 1
 int *buffer;
 int item = 0, front = 0, rear = 0, counter = 0; // counter is the number of items in the buffer
 
@@ -26,7 +26,9 @@ void produce(void *pid){
         while(counter == BUFFER_SIZE); // Buffer full, so stop producing
         sem_wait(&semaphore); // Decrement semaphore if possible, else block
         usleep(10000); // Simulating some time consuming calculations
-        printf("Producer %d: Produced item %d + | Items in buffer = %d\n", *(int*)pid, ++item, ++counter);
+        counter++;
+        item++;
+        printf("Producer %d: Produced item %d + | Items in buffer = %d\n", *(int*)pid, item, counter);
         buffer[rear] = item;
         rear = (rear + 1) % BUFFER_SIZE;
         sem_post(&semaphore); // Increment semaphore
@@ -38,7 +40,8 @@ void consume(void *pid){
         while(counter == 0); // Buffer empty, so stop consuming
         sem_wait(&semaphore); // Decrement semaphore if possible, else block        
         usleep(10000); // Simulating some time consuming calculations
-        printf("Consumer %d: Consumed item %d - | Items in buffer = %d\n", *(int*)pid, buffer[front], --counter);
+        counter--;
+        printf("Consumer %d: Consumed item %d - | Items in buffer = %d\n", *(int*)pid, buffer[front], counter);
         front = (front + 1) % BUFFER_SIZE;
         sem_post(&semaphore); // Increment semaphore
     }

@@ -9,8 +9,6 @@ Observe the change in the size of both files and number of links. Make a note of
 #include<stdlib.h>
 #include<unistd.h>
 #include<fcntl.h>
-#include<errno.h>  // Error Handling
-#include<string.h> // For converting the error code held in errno to text
 
 int main(){
     char *file1 = "a.txt";
@@ -22,20 +20,27 @@ int main(){
     If newpath exists, it will not be overwritten.
     This new name may be used exactly as the old one for any operation; both names refer to the same file (and so have the same permissions and
     ownership) and it is impossible to tell which name was the "original".
+
+    After adding a hardlink, the number of links increases for both the files
+    When there are multiple hardlinks, the number of links will increase for all the files whenever a new link is added
     */
     if(ret < 0){
         printf("  Failed\n");
-        fprintf(stderr, "Link creation error: %s\n", strerror(errno));
+        perror("Link creation error");
         exit(1);
     }
     printf("  Success\nOpening \"%s\"...", file2);
     int fileDescriptor = open("new.txt", O_RDWR, 0644); 
     if(fileDescriptor < 0){
         printf("  Failed\n");
-        fprintf(stderr, "File opening error: %s\n", strerror(errno));
+        perror("File opening error");
         exit(1);
     } 
-    write(fileDescriptor, "Ten Bytes\n", 10); // Writing 10 bytes of data to the file
+    if(write(fileDescriptor, "Ten Bytes\n", 10) == -1){ // Writing 10 bytes of data to the file
+        perror("File writing error"); // write() returns -1 if it failed and number of bytes written (<= what is specified) if its successfull
+        exit(1);
+    }
+
     close(fileDescriptor);
     printf("  Success\nWrote 10 bytes of data to \"%s\"\n", file2);
     return 0;
